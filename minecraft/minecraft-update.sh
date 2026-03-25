@@ -8,7 +8,7 @@ if [[ -z "$minecraft_directory" ]]; then
 fi
 
 # Extract Version Number from current server.jar
-old_jar_version=$(unzip -p server.jar version.json | jq ".name")
+old_jar_version=$(unzip -p $minecraft_directory/server.jar version.json | jq ".name")
 old_jar_version="${old_jar_version//\"/}" #remove ""
 
 versions_manifest=$(curl -s https://launchermeta.mojang.com/mc/game/version_manifest.json)
