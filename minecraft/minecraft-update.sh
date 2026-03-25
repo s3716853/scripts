@@ -1,22 +1,37 @@
 #!/bin/bash
 
-eppoch_time=$(date +%s)
+minecraft_directory=$1
 
-# Example value='    "name": "1.21.5",' (excluding the ' ')
-old_jar_version_string=$(unzip -p server.jar version.json | grep "name")
+if [[ -z "$minecraft_directory" ]]; then
+    echo 'PROPER USAGE - ./minecraft-update.sh minecraft/directory'
+    exit 1
+fi
 
-manifest=#(curl https://launchermeta.mojang.com/mc/game/version_manifest.json)
+# Extract Version Number from current server.jar
+old_jar_version=$(unzip -p server.jar version.json | jq ".name")
+old_jar_version="${old_jar_version//\"/}" #remove ""
 
-latest_jar_version=$($manifest | jq '.latest.release')
-latest_jar_url=$(curl https://piston-meta.mojang.com/v1/packages/3ca944c82c5e058dda4749eb6d871e4962cc886a/1.21.5.json | jq '.downloads.server.url')
+versions_manifest=$(curl -s https://launchermeta.mojang.com/mc/game/version_manifest.json)
 
+# Get Newest Minecraft Version Number
+latest_jar_version=$(echo "$versions_manifest" | jq '.latest.release')
+latest_jar_version="${latest_jar_version//\"/}" #remove ""
 
-minecraft_down_url="https://piston-data.mojang.com/v1/objects/e6ec2f64e6080b9b5d9b471b291c33cc7f509733/server.jar"
+# If our server is behind, time to upgrade
+echo "Current Version: $old_jar_version"
+echo "Latest Version: $latest_jar_version"
+if [ "$old_jar_version" != "$latest_jar_version"  ]; then
+    # Get the URL for the latest minecrat server version
+    latest_jar_manifest_url=$(echo $versions_manifest | jq -r --arg id "$latest_jar_version" '.versions[] | select(.id == $id) | .url')
+    latest_jar_url=$(curl -s $latest_jar_manifest_url -s | jq '.downloads.server.url')
+    latest_jar_url="${latest_jar_url//\"/}" #remove ""
 
-mkdir -p server_jar_backup
+    mkdir -p $minecraft_directory/server_jar_backup
+    mv $minecraft_directory/server.jar $minecraft_directory/server_jar_backup/server_$old_jar_version.jar
 
-mv server.jar server_jar_backup/server_$old_jar_suffix.jar
+    curl $latest_jar_url --output $minecraft_directory/server.jar
 
-curl $minecraft_down_url --output server.jar
-
-[[ "$latest_jar_version" ]]
+    echo "Upgrade from $old_jar_version to $latest_jar_version complete"
+else
+    echo "Versions match. No update needed." 
+fi
