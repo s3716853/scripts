@@ -26,12 +26,17 @@ if [ "$old_jar_version" != "$latest_jar_version"  ]; then
     latest_jar_url=$(curl -s $latest_jar_manifest_url -s | jq '.downloads.server.url')
     latest_jar_url="${latest_jar_url//\"/}" #remove ""
 
+    systemctl stop minecraft
+
     mkdir -p $minecraft_directory/server_jar_backup
     mv $minecraft_directory/server.jar $minecraft_directory/server_jar_backup/server_$old_jar_version.jar
-
     curl $latest_jar_url --output $minecraft_directory/server.jar
+
+    systemctl start minecraft
 
     echo "Upgrade from $old_jar_version to $latest_jar_version complete"
 else
     echo "Versions match. No update needed." 
 fi
+
+systemctl status minecraft
