@@ -9,9 +9,9 @@ cd /tmp/proton-ge-custom
 
 # download tarball
 echo "Fetching tarball URL..."
-tarball_url=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | grep .tar.gz)
+tarball_url=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | grep x86_64.tar.gz)
 tarball_name=$(basename $tarball_url)
-version=$(basename $tarball_name .tar.gz)
+version=$(basename $tarball_name x86_64.tar.gz)
 echo "Checking if $version is already installed.."
 if [ -d ~/.steam/root/compatibilitytools.d/$version ]; then
     echo "Already installed, install script ending"
@@ -22,7 +22,7 @@ curl -# -L $tarball_url -o $tarball_name 2>&1
 
 # download checksum
 echo "Fetching checksum URL..."
-checksum_url=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | grep .sha512sum)
+checksum_url=$(curl -s https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest | grep browser_download_url | cut -d\" -f4 | grep x86_64.sha512sum)
 checksum_name=$(basename $checksum_url)
 echo "Downloading checksum: $checksum_name..."
 curl -# -L $checksum_url -o $checksum_name 2>&1
